@@ -10,6 +10,9 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE (FOnBeatDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE (FOnBeatStartedDelegate);
 
+class UQuartzSubsystem;
+class UQuartzClockHandle;
+
 UCLASS()
 class ROCKUBE_API AGlobalBPMTickCounter : public AActor
 {
@@ -24,14 +27,13 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION (BlueprintCallable) void StartBeatTick();
 	UFUNCTION (BlueprintCallable) void StopBeatTick();
 
 	UFUNCTION (BlueprintCallable) bool IsOnBeat (double GoodTolerance, double PerfectTolerance, bool& bIsPerfect, double& DeltaError);
 	UFUNCTION (BlueprintCallable) double GetEstimatedRemainingTimeNextBeat();
+	UFUNCTION (BlueprintCallable) void PerformQuartzBeat();
 
 	FOnBeatDelegate& GetBeatDelegate() { return BeatOnDelegate;}
 	FOnBeatStartedDelegate& GetBeatStartedDelegate() { return BeatOnStartedDelegate;}
@@ -56,11 +58,23 @@ protected:
 	UPROPERTY (BlueprintAssignable)
 	FOnBeatStartedDelegate BeatOnStartedDelegate;
 
+	UPROPERTY (BlueprintReadWrite)
+	UQuartzClockHandle* QuartzClock;
+	UPROPERTY (BlueprintReadOnly)
+	FName				QuartzClockName = TEXT ("BMPSyncClock");
+
 private:
-	double			StartTime = 0.;
-	double			LastBeatTime = 0.;
-	double			ExpectedNextBeatTime = 0;
-	bool			bBeatTickEnabled = false;
-	int32			NumOfPerformedBeats = 0; // for debug purposes
-	FTimerHandle	BeatTickTimer;
+	double				StartTime = 0.;
+	double				QuartzStartTime = 0.;
+	double				LastBeatTime = 0.;
+	double				QuartzLastBeatTime = 0.;
+	double				ExpectedNextBeatTime = 0;
+	FTimerHandle		OffsetTimer;
+	UQuartzSubsystem*	WorldQuartzSubsystem;
+	bool				bIsFirstBeat = false;
+
+	//not sure if I ever really need them
+	//Will keep it in case GC making things dead
+	FQuartzQuantizationBoundary QuantizationBoundary;
+	FOnQuartzCommandEventBP		QuartzEventDelegate;
 };

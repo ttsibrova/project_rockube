@@ -2,12 +2,19 @@
 
 
 #include "Core/GlobalBPMTickCounter.h"
+#include "Quartz/QuartzSubsystem.h"
+#include "Quartz/AudioMixerClockHandle.h"
+
+#include "Sound/QuartzQuantizationUtilities.h"
+
 
 // Sets default values
 AGlobalBPMTickCounter::AGlobalBPMTickCounter()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+
+	QuantizationBoundary.CountingReferencePoint = EQuarztQuantizationReference::CurrentTimeRelative;
 
 }
 
@@ -15,34 +22,40 @@ AGlobalBPMTickCounter::AGlobalBPMTickCounter()
 void AGlobalBPMTickCounter::BeginPlay()
 {
 	Super::BeginPlay();
+	UWorld* CurrentWorld = GetWorld();
+	//if (CurrentWorld) {
+	//	UQuartzSubsystem* QuartzSubsystem = CurrentWorld->GetSubsystem<UQuartzSubsystem>();
+	//	if (QuartzSubsystem) {
+	//		WorldQuartzSubsystem = QuartzSubsystem;
+	//		//Default setting are fine for now, should be changed via changing Quarts Time Signature inside settings
+	//		//Beat is 4/4
+	//		FQuartzClockSettings QuartzClockSettings;
+	//		QuartzClock = WorldQuartzSubsystem->CreateNewClock (CurrentWorld, QuartzClockName, QuartzClockSettings);
+	//		if (!QuartzClock) {
+	//			UE_LOG (LogTemp, Fatal, TEXT ("Failed to create QuartzClock for BPMCounter"))
+	//			return;
+	//		}
+	//		QuartzClock->SetBeatsPerMinute (CurrentWorld, QuantizationBoundary, QuartzEventDelegate, QuartzClock, BPM);
+	//	}
+	//}
 }
 
-// Called every frame
-void AGlobalBPMTickCounter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
-	if (bBeatTickEnabled && GetWorld()->GetTimeSeconds() - ExpectedNextBeatTime > 0) {
+void AGlobalBPMTickCounter::StartBeatTick()
+{
+	QuartzClock->StartClock (GetWorld(), QuartzClock);
+	QuartzStartTime = GetWorld()->GetTimeSeconds();
+	bIsFirstBeat = true;
+	if (StartOffset > 0) {
+		GetWorld()->GetTimerManager().SetTimer (OffsetTimer, this, &AGlobalBPMTickCounter::PerformBeat, StartOffset, false);
+	} else {
 		PerformBeat();
 	}
 }
 
-void AGlobalBPMTickCounter::StartBeatTick()
-{
-	bBeatTickEnabled = false;
-	StartTime = GetWorld()->GetTimeSeconds() + StartOffset;
-	LastBeatTime = StartTime;
-	RecomputeBeatTime();
-	NumOfPerformedBeats = 0;
-	ExpectedNextBeatTime = StartTime;
-	GetWorld()->GetTimerManager().SetTimer (BeatTickTimer, this, &AGlobalBPMTickCounter::PerformBeat, StartOffset, false);
-	//GetWorld()->GetTimerManager().SetTimer (BeatTickTimer, this, &AGlobalBPMTickCounter::StartBroadcast, StartOffset, false);
-	BeatOnStartedDelegate.Broadcast();
-}
-
 void AGlobalBPMTickCounter::StopBeatTick()
 {
-	bBeatTickEnabled = false;
+	QuartzClock->StopClock (GetWorld(), true, QuartzClock);
 }
 
 bool AGlobalBPMTickCounter::IsOnBeat (double GoodTolerance, double PerfectTolerance, bool& bIsPerfect, double& DeltaError)
@@ -71,24 +84,35 @@ double AGlobalBPMTickCounter::GetEstimatedRemainingTimeNextBeat()
 
 void AGlobalBPMTickCounter::PerformBeat()
 {
-	LastBeatTime = ExpectedNextBeatTime;
-	ExpectedNextBeatTime = StartTime + ((NumOfPerformedBeats + 1) * BeatTime);
+	double CurrentTime = GetWorld()->GetTimeSeconds();
+	if (bIsFirstBeat) {
+		StartTime = CurrentTime;
+		RecomputeBeatTime();
+		LastBeatTime = StartTime;
+		ExpectedNextBeatTime = StartTime + BeatTime;
+		bIsFirstBeat = false;
+	}
+	LastBeatTime = CurrentTime;
+	ExpectedNextBeatTime = QuartzLastBeatTime + StartOffset + BeatTime;
 	//if (GEngine)
 	//	GEngine->AddOnScreenDebugMessage (-1, 2.0f, FColor::Red, TEXT ("Tick c++"));
 
 	//Desync checker
-	double RealCurrentTime = GetWorld ()->GetTimeSeconds ();
-	double EstimatedBeatTickTime = StartTime + (NumOfPerformedBeats * BeatTime);
-	double DeltaRealEstimated = RealCurrentTime - EstimatedBeatTickTime;
+	double DeltaRealEstimated = LastBeatTime - QuartzLastBeatTime - StartOffset;
 	if (GEngine && FMath::Abs (DeltaRealEstimated) > 0.01) {
 		FString aWarningText = TEXT ("Desync detected. Desync size: ") + FString::SanitizeFloat (DeltaRealEstimated);
 		GEngine->AddOnScreenDebugMessage (-1, 3.0f, FColor::Red, aWarningText);
 	}
-	NumOfPerformedBeats++;
 	BeatOnDelegate.Broadcast();
+}
 
-	if (!bBeatTickEnabled) {
-		bBeatTickEnabled = true;
+void AGlobalBPMTickCounter::PerformQuartzBeat()
+{
+	QuartzLastBeatTime = GetWorld()->GetTimeSeconds();
+	if (StartOffset > 0) {
+		GetWorld()->GetTimerManager().SetTimer (OffsetTimer, this, &AGlobalBPMTickCounter::PerformBeat, StartOffset, false);
+	} else {
+		PerformBeat();
 	}
 }
 
