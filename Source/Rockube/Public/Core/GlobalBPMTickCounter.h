@@ -9,6 +9,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE (FOnBeatDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE (FOnBeatStartedDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE (FOnBPMClockCreatedDelegate);
 
 class UQuartzSubsystem;
 class UQuartzClockHandle;
@@ -23,11 +24,11 @@ public:
 	AGlobalBPMTickCounter();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
 
+	UFUNCTION (BlueprintCallable) void InitClock();
 	UFUNCTION (BlueprintCallable) void StartBeatTick();
 	UFUNCTION (BlueprintCallable) void StopBeatTick();
 
@@ -57,6 +58,9 @@ protected:
 
 	UPROPERTY (BlueprintAssignable)
 	FOnBeatStartedDelegate BeatOnStartedDelegate;
+
+	UPROPERTY (BlueprintAssignable)
+	FOnBPMClockCreatedDelegate OnBPMClockCreatedDelegate;
 
 	UPROPERTY (BlueprintReadWrite)
 	UQuartzClockHandle* QuartzClock;

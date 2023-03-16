@@ -22,24 +22,31 @@ AGlobalBPMTickCounter::AGlobalBPMTickCounter()
 void AGlobalBPMTickCounter::BeginPlay()
 {
 	Super::BeginPlay();
-	UWorld* CurrentWorld = GetWorld();
-	//if (CurrentWorld) {
-	//	UQuartzSubsystem* QuartzSubsystem = CurrentWorld->GetSubsystem<UQuartzSubsystem>();
-	//	if (QuartzSubsystem) {
-	//		WorldQuartzSubsystem = QuartzSubsystem;
-	//		//Default setting are fine for now, should be changed via changing Quarts Time Signature inside settings
-	//		//Beat is 4/4
-	//		FQuartzClockSettings QuartzClockSettings;
-	//		QuartzClock = WorldQuartzSubsystem->CreateNewClock (CurrentWorld, QuartzClockName, QuartzClockSettings);
-	//		if (!QuartzClock) {
-	//			UE_LOG (LogTemp, Fatal, TEXT ("Failed to create QuartzClock for BPMCounter"))
-	//			return;
-	//		}
-	//		QuartzClock->SetBeatsPerMinute (CurrentWorld, QuantizationBoundary, QuartzEventDelegate, QuartzClock, BPM);
-	//	}
-	//}
+
 }
 
+//Creating the most essential clocks for the game
+//BPM and other important setting should be initialized already
+void AGlobalBPMTickCounter::InitClock()
+{
+	UWorld* CurrentWorld = GetWorld ();
+	if (CurrentWorld) {
+		UQuartzSubsystem* QuartzSubsystem = CurrentWorld->GetSubsystem<UQuartzSubsystem> ();
+		if (QuartzSubsystem) {
+			WorldQuartzSubsystem = QuartzSubsystem;
+			//Default setting are fine for now, should be changed via changing Quarts Time Signature inside settings
+			//Beat is 4/4
+			FQuartzClockSettings QuartzClockSettings;
+			QuartzClock = WorldQuartzSubsystem->CreateNewClock (CurrentWorld, QuartzClockName, QuartzClockSettings);
+			if (!QuartzClock) {
+				UE_LOG (LogTemp, Fatal, TEXT ("Failed to create QuartzClock for BPMCounter"))
+					return;
+			}
+			QuartzClock->SetBeatsPerMinute (CurrentWorld, QuantizationBoundary, QuartzEventDelegate, QuartzClock, BPM);
+			OnBPMClockCreatedDelegate.Broadcast();
+		}
+	}
+}
 
 void AGlobalBPMTickCounter::StartBeatTick()
 {

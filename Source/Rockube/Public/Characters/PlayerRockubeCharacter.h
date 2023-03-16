@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Characters/RockubeBaseCharacter.h"
+#include "InputActionValue.h"
 #include "PlayerRockubeCharacter.generated.h"
 
 class UCameraComponent;
+class URockubeMovementComponent;
 
 UCLASS()
 class ROCKUBE_API APlayerRockubeCharacter : public ARockubeBaseCharacter
@@ -14,7 +16,7 @@ class ROCKUBE_API APlayerRockubeCharacter : public ARockubeBaseCharacter
 	GENERATED_BODY()
 
 public:
-	APlayerRockubeCharacter();
+	APlayerRockubeCharacter (const FObjectInitializer& ObjectInitializer);
 
 	
 protected:
@@ -56,5 +58,14 @@ protected:
 	UPROPERTY (VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 		UCameraComponent* CameraComponent;
 
+	UPROPERTY (EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
+		URockubeMovementComponent* RockubeMovmentComponent;
 
+
+protected:
+	void Move (const FInputActionValue& Value);
+	void Look (const FInputActionValue& Value);
+	void Interact (const FInputActionValue& Value);
+	void Dash (const FInputActionValue& Value);
+	void DashReleased (const FInputActionValue& Value);
 };

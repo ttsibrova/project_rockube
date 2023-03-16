@@ -14,9 +14,9 @@ class ROCKUBE_API ARockubeBaseCharacter : public ACharacter
 
 public:
 	// Sets default values for this character's properties
-	ARockubeBaseCharacter();
+	ARockubeBaseCharacter (const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get ());
 
 protected:
-	UPROPERTY (Category = "Synchronization", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY (Category = "Synchronization", VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UBeatSyncComponent> BeatSync;
 };
