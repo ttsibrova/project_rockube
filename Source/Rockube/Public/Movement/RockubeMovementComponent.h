@@ -9,6 +9,14 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE (FDashStartDelegate);
 
+UENUM (BlueprintType)
+enum ECustomMovementMode
+{
+	CMOVE_None			UMETA (Hidden),
+	CMOVE_Dash			UMETA (DisplayName = "Dash"),
+	CMOVE_MAX			UMETA (Hidden)
+};
+
 class APlayerRockubeCharacter;
 /**
  * 
@@ -23,19 +31,23 @@ class ROCKUBE_API URockubeMovementComponent : public UCharacterMovementComponent
 	//Parameters
 	//Dash
 	UPROPERTY (EditDefaultsOnly) UAnimMontage* DashMontage;
-	UPROPERTY (EditDefaultsOnly) float DashImpulse = 2000.f;
+	UPROPERTY (EditDefaultsOnly) float DashImpulseOnGround = 6000.f;
+	UPROPERTY (EditDefaultsOnly) float DashImpulseInAir = 2000.f;
+	UPROPERTY (EditDefaultsOnly) float DashGravityForce = 2000.f;
+	UPROPERTY (EditDefaultsOnly) float BrakingDecelerationDash = 1000.f;
 
 
 
 	//flags
 	bool Safe_bWantsToDash = false;
-	bool bAllowedToDash;
-
+	bool bAllowedToDash = true;
 	bool Safe_bHadAnimRootMotion;
+	float DashBlockTime = 0.4f;
+	float DashStartTime;
 
 	//Delegates
 public:
-	UPROPERTY (BluprintAssignable) FDashStartDelegate DashStartDelegate;
+	UPROPERTY (BlueprintAssignable) FDashStartDelegate DashStartDelegate;
 
 public:
 	URockubeMovementComponent() {};
@@ -45,8 +57,7 @@ protected:
 
 
 private:
-	bool CanDash() const;
-	void PerformDash();
+
 
 public:
 	virtual void UpdateCharacterStateBeforeMovement (float DelatSeconds) override;
@@ -54,6 +65,16 @@ public:
 
 protected:
 	virtual void OnMovementUpdated (float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity) override;
+	virtual void PhysCustom (float deltaTime, int32 Iterations) override;
+	virtual void OnMovementModeChanged (EMovementMode PreviousMode, uint8 PreviousCustomMode) override;
+
+	// Dash
+private:
+	void EnterDash (EMovementMode PrevMode, ECustomMovementMode PreviousCustomMode);
+	void ExitDash();
+	bool CanDash() const;
+	void PhysDash (float deltaTime);
+	void PerformDash ();
 
 public:
 	UFUNCTION(BlueprintCallable) void DashPressed();

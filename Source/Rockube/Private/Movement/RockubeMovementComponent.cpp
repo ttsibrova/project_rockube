@@ -51,14 +51,35 @@ bool URockubeMovementComponent::CanDash() const
 
 void URockubeMovementComponent::PerformDash()
 {
-    SetMovementMode (MOVE_Flying);
-    CharacterOwner->PlayAnimMontage (DashMontage, 1.f, FName(TEXT("start_1")));
+    DashStartTime = GetWorld()->GetTimeSeconds();
+    FVector DashDirection = (Acceleration.IsNearlyZero() ? UpdatedComponent->GetForwardVector() : Acceleration).GetSafeNormal2D();
+    //DashDirection += FVector::UpVector * 0.1f;
+    if (IsFalling()) {
+        Velocity = DashImpulseInAir * DashDirection;
+    } else {
+        Velocity = DashImpulseOnGround * DashDirection;
+    }
+
+    FQuat NewRotation = FRotationMatrix::MakeFromXZ (DashDirection, FVector::UpVector).ToQuat();
+    FHitResult Hit;
+    SafeMoveUpdatedComponent (FVector::ZeroVector, NewRotation, false, Hit);
+    SetMovementMode (MOVE_Falling);
+
+    DashStartDelegate.Broadcast();
 }
 
 //Inputs
 void URockubeMovementComponent::DashPressed() 
 {
-    Safe_bWantsToDash = true;
+    if (bAllowedToDash) {
+        Safe_bWantsToDash = true;
+        bAllowedToDash = false;
+    } else {
+        float DeltaTime = GetWorld()->GetTimeSeconds() - DashStartTime;
+        if (DeltaTime >= DashBlockTime) {
+            Safe_bWantsToDash = true;
+        }
+    }
     //Dash cooldown check
     //timer start?
 }
