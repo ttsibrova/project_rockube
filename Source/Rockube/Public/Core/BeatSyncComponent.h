@@ -23,7 +23,10 @@ protected:
 
 public:	
 	UFUNCTION (BlueprintCallable)
-	bool IsActionAllowed (double& RemainingTime);
+	double GetTimeUntilNextBeat() const;
+	UFUNCTION (BlueprintCallable)
+	double GetBeatTime() const { return GlobalBPMCounter->GetBeatTime(); }
+
 
 	UFUNCTION (BlueprintCallable)
 	AGlobalBPMTickCounter* GetBPMCounter() { return GlobalBPMCounter; }

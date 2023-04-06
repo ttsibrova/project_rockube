@@ -52,14 +52,16 @@ void APlayerRockubeCharacter::SetupPlayerInputComponent (UInputComponent* Player
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent> (PlayerInputComponent)) {
 
-		EnhancedInputComponent->BindAction (JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction (JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction (JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		EnhancedInputComponent->BindAction (MoveAction, ETriggerEvent::Triggered, this, &APlayerRockubeCharacter::Move);
 		EnhancedInputComponent->BindAction (LookAction, ETriggerEvent::Triggered, this, &APlayerRockubeCharacter::Look);
 		
-		EnhancedInputComponent->BindAction (DashAction, ETriggerEvent::Triggered, this, &APlayerRockubeCharacter::Dash);
+		EnhancedInputComponent->BindAction (DashAction, ETriggerEvent::Started, this, &APlayerRockubeCharacter::DashPressed);
 		EnhancedInputComponent->BindAction (DashAction, ETriggerEvent::Completed, this, &APlayerRockubeCharacter::DashReleased);
+
+		EnhancedInputComponent->BindAction (InteractAction, ETriggerEvent::Started, this, &APlayerRockubeCharacter::InteractPressed);
 	}
 }
 
@@ -103,11 +105,31 @@ void APlayerRockubeCharacter::Interact (const FInputActionValue& Value)
 {
 }
 
-void APlayerRockubeCharacter::Dash (const FInputActionValue& Value)
+void APlayerRockubeCharacter::DashPressed (const FInputActionValue& Value)
 {
+	FString Time = FString::SanitizeFloat (GetWorld ()->GetTimeSeconds ());
+	GEngine->AddOnScreenDebugMessage (-1, 10.0f, FColor::Black, Time);
 	RockubeMovmentComponent->DashPressed();
 }
 void APlayerRockubeCharacter::DashReleased (const FInputActionValue& Value)
 {
 	RockubeMovmentComponent->DashReleased();
+}
+
+void APlayerRockubeCharacter::JumpPressed (const FInputActionValue& Value)
+{
+	RockubeMovmentComponent->JumpPressed();
+}
+void APlayerRockubeCharacter::JumpReleased (const FInputActionValue& Value)
+{
+	RockubeMovmentComponent->JumpReleased();
+}
+
+void APlayerRockubeCharacter::InteractPressed (const FInputActionValue& Value)
+{
+	double PerfTolerance = 0.05;
+	double GoodTolerance = 0.1;
+	double DeltaError;
+	bool bIsPerfect;
+	bool bIsOnBeat = GetBeatSyncComp()->GetBPMCounter()->IsOnBeat (GoodTolerance, PerfTolerance, bIsPerfect, DeltaError);
 }

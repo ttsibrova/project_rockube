@@ -68,19 +68,29 @@ void AGlobalBPMTickCounter::StopBeatTick()
 bool AGlobalBPMTickCounter::IsOnBeat (double GoodTolerance, double PerfectTolerance, bool& bIsPerfect, double& DeltaError)
 {
 	double CurrentTime = GetWorld()->GetTimeSeconds();
+	FString Time = FString::SanitizeFloat (GetWorld ()->GetTimeSeconds ());
+	GEngine->AddOnScreenDebugMessage (-1, 10.0f, FColor::Black, Time);
 	bIsPerfect = false;
 
 	double LastDeltaTime = FMath::Abs (CurrentTime - LastBeatTime);
 	double NextDeltaTime = FMath::Abs (ExpectedNextBeatTime - CurrentTime);
+	double LastDeltaTimeNoAbs = CurrentTime - LastBeatTime;
+	double NextDeltaTimeNoAbs = ExpectedNextBeatTime - CurrentTime;
 	DeltaError = LastDeltaTime > NextDeltaTime ? NextDeltaTime : LastDeltaTime;
 
 	if (LastDeltaTime <= PerfectTolerance || NextDeltaTime <= PerfectTolerance) {
+		FString aWarningText = TEXT ("C++ Perfect. LastDelta error: ") + FString::SanitizeFloat (LastDeltaTimeNoAbs) + TEXT ("    NextDelta error: ") + FString::SanitizeFloat (NextDeltaTimeNoAbs);
+		GEngine->AddOnScreenDebugMessage (-1, 5.0f, FColor::Green, aWarningText);
 		bIsPerfect = true;
 		return true;
 	}
 	if (LastDeltaTime <= GoodTolerance || NextDeltaTime <= GoodTolerance) {
+		FString aWarningText = TEXT ("C++ Good. LastDelta error: ") + FString::SanitizeFloat (LastDeltaTimeNoAbs) + TEXT ("    NextDelta error: ") + FString::SanitizeFloat (NextDeltaTimeNoAbs);
+		GEngine->AddOnScreenDebugMessage (-1, 5.0f, FColor::Yellow, aWarningText);
 		return true;
 	}
+	FString aWarningText = TEXT ("C++ Miss. LastDelta error: ") + FString::SanitizeFloat (LastDeltaTimeNoAbs) + TEXT ("    NextDelta error: ") + FString::SanitizeFloat (NextDeltaTimeNoAbs);
+	GEngine->AddOnScreenDebugMessage (-1, 5.0f, FColor::Red, aWarningText);
 	return false;
 }
 

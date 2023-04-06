@@ -28,14 +28,9 @@ void UBeatSyncComponent::BeginPlay()
 	GlobalBPMCounter = Cast <AGlobalBPMTickCounter> (Actor);
 }
 
-bool UBeatSyncComponent::IsActionAllowed (double& RemainingTime)
+double UBeatSyncComponent::GetTimeUntilNextBeat() const
 {
-	RemainingTime = 0.;
-	auto EstimatedTime = GlobalBPMCounter->GetEstimatedRemainingTimeNextBeat();
-	if (EstimatedTime > 0.) {
-		RemainingTime = EstimatedTime;
-		return false;
-	}
-	return true; //seems nearly impossible
+	return GlobalBPMCounter->GetEstimatedRemainingTimeNextBeat();
+
 }
 

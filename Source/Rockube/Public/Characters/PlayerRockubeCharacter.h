@@ -66,6 +66,11 @@ protected:
 	void Move (const FInputActionValue& Value);
 	void Look (const FInputActionValue& Value);
 	void Interact (const FInputActionValue& Value);
-	void Dash (const FInputActionValue& Value);
+	void DashPressed (const FInputActionValue& Value);
 	void DashReleased (const FInputActionValue& Value);
+	void JumpPressed (const FInputActionValue& Value);
+	void JumpReleased (const FInputActionValue& Value);
+
+	void InteractPressed (const FInputActionValue& Value);
+
 };

@@ -36,6 +36,8 @@ public:
 	UFUNCTION (BlueprintCallable) double GetEstimatedRemainingTimeNextBeat();
 	UFUNCTION (BlueprintCallable) void PerformQuartzBeat();
 
+	UFUNCTION (BlueprintCallable) double GetBeatTime() { return BeatTime; };
+
 	FOnBeatDelegate& GetBeatDelegate() { return BeatOnDelegate;}
 	FOnBeatStartedDelegate& GetBeatStartedDelegate() { return BeatOnStartedDelegate;}
 
