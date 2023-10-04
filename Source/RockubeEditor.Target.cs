@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 public class RockubeEditorTarget : TargetRules
 {
-	public RockubeEditorTarget(TargetInfo Target) : base(Target)
-	{
-		Type = TargetType.Editor;
-		DefaultBuildSettings = BuildSettingsVersion.V2;
+    public RockubeEditorTarget(TargetInfo Target) : base(Target)
+    {
+        Type = TargetType.Editor;
+        DefaultBuildSettings = BuildSettingsVersion.V2;
 
-		ExtraModuleNames.AddRange( new string[] { "Rockube" } );
-	}
+        ExtraModuleNames.AddRange( new string[] { "Rockube", "RockubeEditor" } );
+    }
 }

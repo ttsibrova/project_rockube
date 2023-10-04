@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 public class RockubeTarget : TargetRules
 {
-	public RockubeTarget(TargetInfo Target) : base(Target)
-	{
-		Type = TargetType.Game;
-		DefaultBuildSettings = BuildSettingsVersion.V2;
+    public RockubeTarget(TargetInfo Target) : base(Target)
+    {
+        Type = TargetType.Game;
+        DefaultBuildSettings = BuildSettingsVersion.V2;
 
-		ExtraModuleNames.AddRange( new string[] { "Rockube" } );
-	}
+        ExtraModuleNames.AddRange( new string[] { "Rockube" } );
+    }
 }

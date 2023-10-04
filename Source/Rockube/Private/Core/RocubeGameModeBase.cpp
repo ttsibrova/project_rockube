@@ -12,6 +12,6 @@ void ARocubeGameModeBase::InitGame (const FString& MapName, const FString& Optio
         UE_LOG (LogTemp, Fatal, TEXT ("Panik mode activated. No world is ready to spawn BPMTickCounter in"))
         return;
     }
-    //I really need this asshole to be load right at the start of the level
+    //I really need this to be loaded right at the start of the level
     CurrentWorld->SpawnActor<AGlobalBPMTickCounter>();
 }
